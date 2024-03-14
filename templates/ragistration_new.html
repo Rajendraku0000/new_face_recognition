@@ -1,0 +1,171 @@
+ 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration Form</title>
+    
+</head>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 0;
+    }
+    
+  .container {
+        width: 50%;
+        margin: auto;
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    h2 {
+        text-align: center;
+        color: #333;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    label {
+        font-weight: bold;
+    }
+    
+    input[type="text"] {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        box-sizing: border-box;
+    }
+
+    #photo {
+        display: none; /* hide the file input initially */
+    }
+
+    #video {
+        width: 100%;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+    
+    button {
+        background-color: #4caf50;
+        color: #fff;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+    
+    button:hover {
+        background-color: #45a049;
+    }
+    
+</style>
+<body>
+    <div class="container">
+        <h2>Registration Form</h2>
+        <form  method="POST" action="/ragis_abc" enctype="multipart/form-data" id="registrationForm">
+            <div class="form-group">
+                <label for="first_name">First Name:</label>
+                <input type="text" id="first_name" name="first_name" required>
+            </div>
+            <div class="form-group">
+                <label for="last_name">Last Name:</label>
+                <input type="text" id="last_name" name="last_name" required>
+            </div>
+            <div class="form-group">
+                <label for="course">Course:</label>
+                <input type="text" id="course" name="course" required>
+            </div>
+            <div class="form-group">
+                <label for="photo">Upload Photo:</label>
+                <input type="file" id="photo" name="photo" accept="image/*" required>
+                <img id="capturedImage" src="" alt="Captured Image" style="max-width: 100%; display: none;">
+                <video id="video" autoplay></video>  
+            </div>
+            <button type="button" id="captureButton">Capture Photo</button>
+            <button type="submit" id="submitButton">Submit</button>
+        </form>
+        {% if error %}
+            <div class="alert alert-danger">{{ error }}</div>
+        {% endif %}
+    </div>
+
+    <script>
+        // Get references to elements
+        const video = document.getElementById('video');
+        const photoInput = document.getElementById('photo');
+        const capturedImage = document.getElementById('capturedImage');
+        const captureButton = document.getElementById('captureButton');
+        const submitButton = document.getElementById('submitButton');
+
+        // Check if getUserMedia is available
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            // Access the user's camera
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(function(stream) {
+                    // Display the live camera stream in the video element
+                    video.srcObject = stream;
+                })
+                .catch(function(error) {
+                    console.error('Error accessing the camera: ', error);
+                });
+        } else {
+            console.error('getUserMedia is not supported');
+        }
+
+        // Capture photo from live camera stream
+        captureButton.addEventListener('click', function() {
+            // Create a canvas element to draw the photo
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            // Set the captured image to the image input
+            capturedImage.src = canvas.toDataURL('image/jpeg');
+
+            // Show the captured image and hide the video element
+            capturedImage.style.display = 'block';
+            video.style.display = 'none';
+
+            // Show the submit button after capturing the photo
+            submitButton.style.display = 'block';
+
+
+            canvas.toBlob(function (blob) {
+                var formData = new FormData();
+                var file = new File([blob], "captured_image.png", { type: "image/png" });
+                formData.append('file', file);
+
+                var fileList = new DataTransfer();
+                fileList.items.add(file);
+
+                var fileInput = document.getElementById('photo');
+                fileInput.files = fileList.files;
+
+                stream.getTracks().forEach(track => track.stop());
+                video.remove();
+
+                
+            });
+
+
+
+        });
+       
+        // Optional: Hide the submit button initially
+        submitButton.style.display = 'none';
+    </script>
+</body>
+</html>

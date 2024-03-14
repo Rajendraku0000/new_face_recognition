@@ -1,0 +1,7 @@
+opencv-python
+Flask ==2.2.2
+face_recognition
+mysql.connector
+pandas
+numpy
+Gunicorn
